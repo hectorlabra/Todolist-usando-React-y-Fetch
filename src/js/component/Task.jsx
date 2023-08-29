@@ -1,25 +1,24 @@
 import React from "react";
 
 const Task = ({ task, onTaskToggle, onTaskDelete }) => {
-  const { id, text, active } = task;
+  const { label, done } = task;
 
   return (
-    <li className={`list-group-item ${active ? "" : "completed"}`}>
+    <li className={`list-group-item ${done ? "completed" : ""}`}>
       <div className="d-flex justify-content-between align-items-center">
-        <span>{text}</span>
+        <span style={{ color: done ? "gray" : "black" }}>{label}</span>
         <div>
           <button
             className="btn btn-sm btn-danger mr-2"
-            onClick={() => onTaskDelete(id)}
-            style={{ display: active ? "block" : "none" }}
+            onClick={() => onTaskDelete(label)}
           >
             <i className="fas fa-trash"></i>
           </button>
           <button
             className="btn btn-sm btn-success"
-            onClick={() => onTaskToggle(id)}
+            onClick={() => onTaskToggle(label)}
           >
-            {active ? "Completar" : "Reabrir"}
+            {done ? "Reabrir" : "Completar"}
           </button>
         </div>
       </div>

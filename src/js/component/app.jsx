@@ -1,5 +1,6 @@
-import React, { Component } from "react";
+import React, { Component, useState, useEffect } from "react";
 import TaskList from "./TaskList.jsx";
+import Task from "./Task.jsx";
 
 class App extends Component {
   constructor() {
@@ -19,38 +20,18 @@ class App extends Component {
   }
 
   fetchTasks() {
-    // Realizar una solicitud POST para crear el usuario solo si aún no se ha creado
-    if (!this.state.apiLoaded) {
-      fetch(this.apiUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify([]),
+    fetch(this.apiUrl)
+      .then((response) => response.json())
+      .then((data) => {
+        this.setState({
+          tasks: data,
+          tasksLeft: data.filter((task) => !task.done).length,
+          apiLoaded: true,
+        });
       })
-        .then((response) => response.json())
-        .then((data) => {
-          console.log("Usuario creado:", data);
-          this.setState({ apiLoaded: true });
-          this.fetchTasks();
-        })
-        .catch((error) => {
-          console.error("Error al crear usuario:", error);
-        });
-    } else {
-      // Realizar la solicitud GET para obtener las tareas
-      fetch(this.apiUrl)
-        .then((response) => response.json())
-        .then((data) => {
-          this.setState({
-            tasks: data,
-            tasksLeft: data.filter((task) => !task.done).length,
-          });
-        })
-        .catch((error) => {
-          console.error("Error al obtener tareas:", error);
-        });
-    }
+      .catch((error) => {
+        console.error("Error al obtener tareas:", error);
+      });
   }
 
   handleInputChange = (event) => {
@@ -66,26 +47,15 @@ class App extends Component {
         done: false,
       };
 
+      // Agregar la nueva tarea localmente
       this.setState((prevState) => ({
         tasks: [...prevState.tasks, newTask],
         newTaskText: "",
         tasksLeft: prevState.tasksLeft + 1,
       }));
 
-      fetch(this.apiUrl, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify([...this.state.tasks, newTask]),
-      })
-        .then((response) => response.json())
-        .then((data) => {
-          console.log("Tarea agregada:", data);
-        })
-        .catch((error) => {
-          console.error("Error al agregar tarea:", error);
-        });
+      // Realizar la solicitud PUT para actualizar la lista en la API
+      this.updateTasks([...this.state.tasks, newTask]);
     }
   };
 
@@ -97,25 +67,14 @@ class App extends Component {
       return task;
     });
 
+    // Actualizar el estado local
     this.setState({
       tasks: updatedTasks,
       tasksLeft: updatedTasks.filter((task) => !task.done).length,
     });
 
-    fetch(this.apiUrl, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(updatedTasks),
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        console.log("Tarea completada:", data);
-      })
-      .catch((error) => {
-        console.error("Error al completar tarea:", error);
-      });
+    // Realizar la solicitud PUT para actualizar la lista en la API
+    this.updateTasks(updatedTasks);
   };
 
   handleTaskDelete = (taskId) => {
@@ -123,28 +82,18 @@ class App extends Component {
       (task) => task.label !== taskId
     );
 
+    // Actualizar el estado local
     this.setState({
       tasks: updatedTasks,
       tasksLeft: updatedTasks.filter((task) => !task.done).length,
     });
 
-    fetch(this.apiUrl, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(updatedTasks),
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        console.log("Tarea eliminada:", data);
-      })
-      .catch((error) => {
-        console.error("Error al eliminar tarea:", error);
-      });
+    // Realizar la solicitud PUT para actualizar la lista en la API
+    this.updateTasks(updatedTasks);
   };
 
   handleClearAllTasks = () => {
+    // Realizar la solicitud DELETE para eliminar todas las tareas en la API
     fetch(this.apiUrl, {
       method: "DELETE",
       headers: {
@@ -153,6 +102,7 @@ class App extends Component {
     })
       .then((response) => response.json())
       .then(() => {
+        // Actualizar el estado local
         this.setState({
           tasks: [],
           tasksLeft: 0,
@@ -161,6 +111,23 @@ class App extends Component {
       })
       .catch((error) => {
         console.error("Error al eliminar todas las tareas:", error);
+      });
+  };
+
+  updateTasks = (updatedTasks) => {
+    fetch(this.apiUrl, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(updatedTasks),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        console.log("Tareas actualizadas:", data);
+      })
+      .catch((error) => {
+        console.error("Error al actualizar tareas:", error);
       });
   };
 
