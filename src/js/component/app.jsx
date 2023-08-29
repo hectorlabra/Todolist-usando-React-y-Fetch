@@ -31,9 +31,7 @@ class App extends Component {
         .then((response) => response.json())
         .then((data) => {
           console.log("Usuario creado:", data);
-          // Actualizar el estado para indicar que la API se ha cargado
           this.setState({ apiLoaded: true });
-          // Luego, puedes continuar con las solicitudes GET y PUT
           this.fetchTasks();
         })
         .catch((error) => {
