@@ -20,8 +20,15 @@ class App extends Component {
   }
 
   fetchTasks() {
+    // Verificar si el usuario existe antes de hacer la solicitud GET
     fetch(this.apiUrl)
-      .then((response) => response.json())
+      .then((response) => {
+        if (response.status === 404) {
+          return this.createEmptyUser();
+        } else {
+          return response.json();
+        }
+      })
       .then((data) => {
         this.setState({
           tasks: data,
@@ -31,6 +38,24 @@ class App extends Component {
       })
       .catch((error) => {
         console.error("Error al obtener tareas:", error);
+      });
+  }
+
+  createEmptyUser() {
+    // Realizar la solicitud POST para crear un usuario vacío
+    return fetch(this.apiUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify([]),
+    })
+      .then((response) => response.json())
+      .then(() => {
+        return this.fetchTasks();
+      })
+      .catch((error) => {
+        console.error("Error al crear el usuario:", error);
       });
   }
 
